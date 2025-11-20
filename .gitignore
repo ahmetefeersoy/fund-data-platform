@@ -9,3 +9,10 @@ node_modules/
 dist/
 build/
 *.log
+.python-version
+
+dagster_home/
+dagster_home/*.db
+instance/
+instance/*.db
+*.db
