@@ -1,12 +1,11 @@
+import os
 from sqlalchemy import create_engine
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+load_dotenv()
 
-class Settings(BaseSettings):
-    database_url: str
 
-    class Config:
-        env_file = ".env"
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
 
-settings = Settings()
-
-engine = create_engine(settings.database_url)
+engine = create_engine(database_url)

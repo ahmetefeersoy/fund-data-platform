@@ -16,3 +16,7 @@ dagster_home/*.db
 instance/
 instance/*.db
 *.db
+*.out
+*.err
+*.complete
+result

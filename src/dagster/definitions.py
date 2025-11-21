@@ -1,9 +1,7 @@
-from dagster import Definitions, load_assets_from_modules
-from . import ingestion, analytics
+from dagster import Definitions
+from src.dagster.ingestion.ingestion_jobs import ingestion_job
 
 defs = Definitions(
-    assets=[
-        *load_assets_from_modules([ingestion]),
-        *load_assets_from_modules([analytics]),
-    ],
+   
+    jobs=[ingestion_job]
 )

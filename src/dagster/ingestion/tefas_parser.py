@@ -3,6 +3,8 @@ import datetime
 import logging
 import pandas as pd
 from tefas import Crawler
+from src.case_study.utils.db import engine
+from sqlalchemy import text
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -19,8 +21,97 @@ class TefasCrawler:
         self.crawler = Crawler()
 
     def save_to_db(self, data):
-        # TODO: Implement this
-        raise NotImplementedError("Not implemented")
+
+        """Save fetched fund_data to the database"""
+
+        if data is None or data.empty:
+            logger.warning("No data to save to the database.")
+            return
+        
+        fund_columns = [
+            "date",
+            "code",
+            "price",
+            "title",
+            "market_cap",
+            "number_of_shares",
+            "number_of_investors",
+            "bank_bills",
+            "exchange_traded_fund",
+            "other",
+            "fx_payable_bills",
+            "government_bond",
+            "foreign_currency_bills",
+            "eurobonds",
+            "commercial_paper",
+            "fund_participation_certificate",
+            "real_estate_certificate",
+            "venture_capital_investment_fund_participation",
+            "real_estate_investment_fund_participation",
+            "treasury_bill",
+            "stock",
+            "government_bonds_and_bills_fx",
+            "participation_account",
+            "participation_account_au",
+            "participation_account_d",
+            "participation_account_tl",
+            "government_lease_certificates",
+            "government_lease_certificates_d",
+            "government_lease_certificates_tl",
+            "government_lease_certificates_foreign",
+            "precious_metals",
+            "precious_metals_byf",
+            "precious_metals_kba",
+            "precious_metals_kks",
+            "public_domestic_debt_instruments",
+            "private_sector_lease_certificates",
+            "private_sector_bond",
+            "repo",
+            "derivatives",
+            "tmm",
+            "reverse_repo",
+            "asset_backed_securities",
+            "term_deposit",
+            "term_deposit_au",
+            "term_deposit_d",
+            "term_deposit_tl",
+            "futures_cash_collateral",
+            "foreign_debt_instruments",
+            "foreign_domestic_debt_instruments",
+            "foreign_private_sector_debt_instruments",
+            "foreign_exchange_traded_funds",
+            "foreign_equity",
+            "foreign_securities",
+            "foreign_investment_fund_participation_shares",
+            "private_sector_international_lease_certificate",
+            "private_sector_foreign_debt_instruments",
+        ]
+
+        logger.info("Saving data to the database...")
+
+        insert_data = text(f"""
+            INSERT INTO fund_data ({", ".join(fund_columns)})
+            VALUES ({", ".join([f":{c}" for c in fund_columns])})
+            ON CONFLICT (code, date) DO UPDATE SET
+                price = EXCLUDED.price,
+                market_cap = EXCLUDED.market_cap,
+                number_of_shares = EXCLUDED.number_of_shares,
+                number_of_investors = EXCLUDED.number_of_investors,
+                stock = EXCLUDED.stock,
+                precious_metals = EXCLUDED.precious_metals,
+                government_bond = EXCLUDED.government_bond,
+                foreign_currency_bills = EXCLUDED.foreign_currency_bills,
+                eurobonds = EXCLUDED.eurobonds;
+        """)
+
+        with engine.begin() as conn:
+            for _, row in data.iterrows():
+                conn.execute(insert_data, row.to_dict())
+
+        logger.info(f"Saved {len(data)} records to the database.")
+
+        
+               
 
     def fetch_historical_data(self, start_date, end_date=None, chunk_size=7):
         """
