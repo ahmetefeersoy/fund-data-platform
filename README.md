@@ -1,174 +1,129 @@
----
+# Fund Data Platform
 
-Your task is to design and implement a small system that processes Turkish fund data, manages investment portfolios, and computes analytical metrics (risk & performance) using data pipelines.
+Türk fon verilerini işleyen, yatırım portföylerini yöneten ve analitik metrikler hesaplayan bir veri platformu.
 
----
+## Mimari
 
-You will build:
+- **Dagster**: Veri toplama ve analitik pipeline'ları
+- **FastAPI**: Portföy yönetimi ve analitik API'leri
+- **PostgreSQL**: Veri depolama (Supabase)
+- **Docker**: Konteynerizasyon
 
-1. **A Dagster data ingestion pipeline (**[https://docs.dagster.io](https://docs.dagster.io/)**)**
-    
-    Ingest Turkish fund data to PostgreSQL.
-    
-2. **A FastAPI service (**[https://fastapi.tiangolo.com](https://fastapi.tiangolo.com/)**)**
-    
-    CRUD for portfolios (group of funds) + risk and alert endpoints.
-    
-3. **Two analytics pipelines in Dagster**
-    - Portfolio risk calculation
-    - Fund performance evaluation
+## Özellikler
 
----
+### Data Ingestion
+- TEFAS web sitesinden günlük fon verilerini çeker
+- En eski verileri temizler
+- Fon fiyatları, kategoriler ve enstrüman dağılımlarını parse eder
+- PostgreSQL'e kaydeder.
 
-# **1. Background & Scenario**
+### Portfolio Management
+- Portföy oluşturma, güncelleme, silme (CRUD)
+- Portföylere fon pozisyonları ekleme (ağırlıklarla)
+- Portföy listesi ve detay görüntüleme
 
-Fintela works with Turkish asset managers who invest in a universe of funds.
+### Analytics
+- **Risk Analizi**: Portföy risk skorları hesaplama
+- **Performance Analizi**: Fon performans metrikleri
+- **Alert Sistemi**: Yüksek riskli portföyleri tespit etme
 
-They need a system that:
+## Kurulum
 
-- Loads daily updated fund data (prices, category, instrument distribution)
-- Allows definition of portfolios of funds (e.g. 25% FUNDX, 50% FUNDY, 25% FUNDZ)
-- Computes portfolio risks daily
-- Detects unusual behavior in individual funds
-- Exposes results through a REST API
+### Gereksinimler
+- Python 3.12+
+- Docker & Docker Compose
+- PostgreSQL (Supabase kullanılıyor)
 
----
+### Lokal Kurulum
 
-# **2. Requirements**
+```bash
+# Virtual environment oluştur
+python -m venv .venv
+.\.venv\Scripts\activate
 
-Below is the assignment in three parts. Both Dagster and FastAPI is python based, so Python is required. 
-Also, please use virtual environemnts and uv as the package manager. (https://docs.astral.sh/uv/)
+# Bağımlılıkları yükle
+pip install uv
+uv pip install -r pyproject.toml
 
-Use PostgreSQL as the target database of the dagster jobs, as well as the operational db that the FastAPI service uses.
-
----
-
-## **2.1 Part A — Data Ingestion (Dagster)**
-
-### **Your task**
-
-Build a Dagster job that:
-
-- Gets the data from the TEFAS website
-- Parses fund, price, and instrument distribution data
-- Upserts into PostgreSQL (idempotent)
-
-> The fixed information about the funds are given with a csv under `data` folder, you can put that once to PostgreSQL to use in backend later. No need to write a job for the CSV. 
----
-
-## **2.2 Part B — Portfolio Service (FastAPI)**
-
-You will build a REST service that manages portfolios and exposes analytics. After building the service, create 50+ portfolios to use in the next step.
-
-### **Endpoints to implement**
-
-### **1. POST /portfolios**
-
-Create a portfolio with positions:
-
+# .env dosyasını oluştur
+# DATABASE_URL'i ekle
 ```
+
+### Docker ile Çalıştırma
+
+```bash
+# Servisleri başlat
+docker compose up -d
+
+# Logları izle
+docker compose logs -f
+
+# Servisleri durdur
+docker compose down
+```
+
+## API Endpoints
+
+### Portfolios
+
+**POST /portfolios**
+```json
 {
-	"id" : 1,
   "positions": [
-    { "fund_code": "FUNDX", "weight": 0.25 },
-    { "fund_code": "FUNDY", "weight": 0.50 },
-    { "fund_code": "FUNDZ", "weight": 0.25 }
+    {"fund_code": "ABC", "weight": 0.5},
+    {"fund_code": "XYZ", "weight": 0.5}
   ]
 }
 ```
 
-### **2. GET /portfolios**
+**GET /portfolios** - Tüm portföyleri listele
 
-List all portfolios 
+**GET /portfolios/{id}** - Portföy detayı
 
-### **3. GET /portfolios/{id}**
+**PUT /portfolios/{id}** - Portföy güncelle
 
-Return portfolio + positions.
+**DELETE /portfolios/{id}** - Portföy sil
 
-### **4. PUT /portfolios/{id}**
+**GET /portfolios/{id}/risk** - Portföy risk analizi
 
-Update name, positions.
+### Alerts
 
-### **5. DELETE /portfolios/{id}**
+**GET /alerts/portfolios** - Yüksek riskli portföyler
 
-Delete portfolio
+**GET /alerts/funds** - Düşük performanslı fonlar
 
----
+## Erişim
 
-### **Risk & Alert Endpoints**
+- **FastAPI**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+- **Dagster UI**: http://localhost:3000
+- **Health Check**: http://localhost:8000/health
 
-### **GET /portfolios/{id}/risk**
+## Proje Yapısı
 
-Returns latest risk:
-
-```json
-{
-  "portfolio_id": 1,
-  "risk_score": 0.92,
-  "risk": "HIGH"
-}
+```
+src/
+├── case_study/
+│   ├── analytics/          # Risk ve performance hesaplamaları
+│   ├── database/           # SQL şemaları
+│   ├── fastapi/            # API servisi
+│   │   └── routers/        # Endpoint'ler
+│   └── utils/              # DB bağlantısı
+└── dagster/
+    ├── ingestion/          # Veri toplama job'ları
+    └── analytics/          # Analitik job'lar
 ```
 
-### **GET /alerts/portfolios**
+## Geliştirme
 
-Returns all portfolios with "HIGH" risk.
+```bash
+# FastAPI'yi dev modunda çalıştır
+uvicorn src.case_study.fastapi.main:app --reload
 
-```json
-[{
-  "portfolio_id": 1,
-  "risk_score": 0.92,
-  "risk": "HIGH"
-},
-{
-  "portfolio_id": 2,
-  "risk_score": 0.04,
-  "risk": "LOW"
-}
-]
+# Dagster UI'ı başlat
+dagster dev -w workspace.yaml
+
+# Test portföyleri oluştur
+python create_portfolios.py
 ```
 
-### **GET /alerts/funds**
-
-Returns funds that performs significantly bad compared to their peers.
-
-```json
-[{
-  "fund_code": "ABC",
-  "confidence": 0.89 // optional, confidence or a numeric value that signifies the strength of the change
-}]
-```
-
----
-
-## **2.3 Part C — Analytics Pipelines (Dagster)**
-
-You will build two jobs:
-
-- portfolio_risk_job
-- fund_performance_job
-
----
-
-# **3. Analytics Specifications**
-
-In this part, calculate quantitative metrics about the funds and  the portfolios. The calculations will be done with dagster jobs. The following definitions are somewhat vague but its intentional. There is not a single correct way of calculating those, also this  part is the open-ended, thought-provoking portion of the project that might be a little bit more fun then the rest. 
-
-## **3.1 Portfolio Risk**
-
-Fetch at least 180 trading days of prices for each fund (some may have less) for calculating a statistical “riskiness score”
-
-You are free to come up with a measure of riskiness as long as it can be classified as LOW, MEDIUM or HIGH.
-
----
-
-## **3.2 Fund Performance**
-
-For each fund calculate how the fund is performing according to its peers and identify poor performers. Its peers can be understood as the funds with same category, similar asset distribution or any other method. One important consideration is that not producing many alerts.  
-
----
-
-### **Optional but appreciated**
-
-- README to document your approaches and thinking process in software design and analytics.
-- Docker Compose setup
-- Postman collection
