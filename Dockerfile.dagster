@@ -9,11 +9,14 @@ RUN pip install uv && uv pip install --system -r pyproject.toml
 
 COPY src/ ./src/
 COPY data/ ./data/
+COPY start-dagster.sh ./
 
 RUN mkdir -p /opt/dagster/dagster_home
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
 RUN echo "load_from:\n  - python_module: src.dagster.definitions" > /opt/dagster/dagster_home/workspace.yaml
 
+RUN chmod +x start-dagster.sh
+
 EXPOSE 3000
 
-CMD ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/dagster_home/workspace.yaml"]
+CMD ["./start-dagster.sh"]
