@@ -31,6 +31,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - DAGSTER_HOME=/opt/dagster/dagster_home
+      - PORT=3000
     volumes:
       - ./src:/app/src
       - ./data:/app/data
