@@ -1,9 +1,14 @@
 from sqlalchemy import create_engine
 
-uri = "postgresql://postgres:AHMETefe0303@db.ewrwjgenruaegkbhbnok.supabase.co:5432/postgres"
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
+database_url = os.environ.get("DATABASE_URL")
 
 try:
-    engine = create_engine(uri)
+    engine = create_engine(database_url)
     conn = engine.connect()
     print("CONNECTED OK")
 except Exception as e:

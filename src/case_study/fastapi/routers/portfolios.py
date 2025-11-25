@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ...utils.db import engine
+from ...utils.db import SessionLocal
 from .. import controllers, schemas, models
 
 router = APIRouter(prefix="/portfolios", tags=["Portfolios"])
 
 def get_db():
-    db = Session(bind=engine)
+    db = SessionLocal()
     try:
         yield db
     finally:
@@ -53,4 +53,20 @@ async def delete_portfolio(portfolio_id: int, db: Session = Depends(get_db)):
     return {"detail": "Portfolio deleted successfully"}
 
 
+# Risk endpoint
+@router.get("/{portfolio_id}/risk", response_model=schemas.PortfolioRiskResponse)
+async def get_portfolio_risk(portfolio_id: int, db: Session = Depends(get_db)):
     
+    portfolio = controllers.get_user_portfolio(db, portfolio_id)
+    if portfolio is None:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+    
+    risk = controllers.get_portfolio_risk(db, portfolio_id)
+    if risk is None:
+        raise HTTPException(status_code=404, detail="No risk calculation found for this portfolio")
+    
+    return schemas.PortfolioRiskResponse(
+        portfolio_id=risk.portfolio_id,
+        risk_score=float(risk.risk_score),
+        risk=risk.risk_level
+    )

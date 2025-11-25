@@ -41,11 +41,38 @@ class PortfolioCreate(PortfolioBase):
 class PortfolioUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
+    positions: Optional[List[PositionCreate]] = Field(default_factory=list)
 
 
 class Portfolio(PortfolioBase):
     id: int
     positions: List[Position] = []
+    
+    class Config:
+        from_attributes = True
+
+
+class PortfolioRiskResponse(BaseModel):
+    portfolio_id: int
+    risk_score: float
+    risk: str 
+    
+    class Config:
+        from_attributes = True
+
+
+class PortfolioAlertResponse(BaseModel):
+    portfolio_id: int
+    risk_score: float
+    risk: str  
+    
+    class Config:
+        from_attributes = True
+
+
+class FundAlertResponse(BaseModel):
+    fund_code: str
+    confidence: float
     
     class Config:
         from_attributes = True

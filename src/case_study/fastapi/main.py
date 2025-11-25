@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from .routers import portfolios
 import uvicorn
 
-app = FastAPI(title="FintelaAI Portfolio API")
+app = FastAPI(title="FintelaAI Portfolio API", description="API for managing user portfolios and calculating risks.")
+
+
 
 app.include_router(portfolios.router)
 
