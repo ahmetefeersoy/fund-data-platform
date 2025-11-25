@@ -1,10 +1,10 @@
 from .tefas_parser import TefasCrawler
-from dagster import op
+from dagster import op, OpExecutionContext
 from datetime import date, timedelta
 
 
 @op(config_schema={"window_days": int})
-def get_tefas_prices(context: op.ExecutionContext):
+def get_tefas_prices(context: OpExecutionContext):
     crawler = TefasCrawler()
 
     window = context.op_config["window_days"]
