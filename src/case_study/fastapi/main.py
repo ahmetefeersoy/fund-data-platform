@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import portfolios
+from .routers import portfolios, alerts
 import uvicorn
 
 app = FastAPI(title="FintelaAI Portfolio API", description="API for managing user portfolios and calculating risks.")
@@ -7,6 +7,7 @@ app = FastAPI(title="FintelaAI Portfolio API", description="API for managing use
 
 
 app.include_router(portfolios.router)
+app.include_router(alerts.router)
 
 
 @app.get("/health")
