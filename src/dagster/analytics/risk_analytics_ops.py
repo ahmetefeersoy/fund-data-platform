@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
-from dagster import op
+from dagster import op , RetryPolicy
 from datetime import datetime, timedelta
 from sqlalchemy import text
 from src.case_study.utils.db import engine
 from src.case_study.analytics.risk import calculate_portfolio_risk
 
 
-@op
+@op(retry_policy=RetryPolicy(max_retries=3, delay=15))
 def fetch_portfolio_positions():
     query = """
         SELECT p.id AS portfolio_id, pos.fund_code, pos.weight
@@ -18,7 +18,7 @@ def fetch_portfolio_positions():
         return pd.read_sql(query, conn)
 
 
-@op
+@op(retry_policy=RetryPolicy(max_retries=3, delay=15))
 def fetch_fund_prices(portfolios_data):
     fund_codes = portfolios_data["fund_code"].unique().tolist()
     if not fund_codes:
@@ -43,7 +43,7 @@ def fetch_fund_prices(portfolios_data):
         )
 
 
-@op
+@op(retry_policy=RetryPolicy(max_retries=3, delay=15))
 def calculate_portfolio_risks(portfolios_data, prices_data):
     if prices_data.empty:
         return pd.DataFrame()
@@ -84,7 +84,7 @@ def calculate_portfolio_risks(portfolios_data, prices_data):
     return pd.DataFrame(results)
 
 
-@op
+@op(retry_policy=RetryPolicy(max_retries=3, delay=15))
 def save_portfolio_risks(risks_data):
     if risks_data.empty:
         return
