@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from . import routers
+from .routers import portfolios
 import uvicorn
 
 app = FastAPI(title="FintelaAI Portfolio API")
 
-app.include_router(routers.router)
+app.include_router(portfolios.router)
 
 
 @app.get("/health")

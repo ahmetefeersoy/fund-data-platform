@@ -19,6 +19,19 @@ class TefasCrawler:
     ):
         """Initialize the TefasCrawler with database settings"""
         self.crawler = Crawler()
+        
+    def clean_oldest_data(self):
+        """Clean oldest data from the database to maintain size"""
+        
+        logger.info("Cleaning oldest data from the database...")
+        delete_query = text("""
+            DELETE FROM fund_data
+            WHERE date < CURRENT_DATE - INTERVAL '180 days';
+        """)
+        
+        with engine.begin() as conn:
+            result = conn.execute(delete_query)
+            logger.info(f"Deleted {result.rowcount} oldest records from the database.")    
 
     def save_to_db(self, data):
 
