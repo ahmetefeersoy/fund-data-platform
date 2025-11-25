@@ -44,9 +44,9 @@ def calculate_var_95(returns: pd.Series) -> float:
 
 
 def classify_risk_level(score: float) -> str:
-    if score < 40:
+    if score < 25:
         return "LOW"
-    elif score < 70:
+    elif score < 60:
         return "MEDIUM"
     return "HIGH"
 
@@ -70,11 +70,16 @@ def calculate_portfolio_risk(prices: pd.Series) -> Dict:
     max_dd = calculate_max_drawdown(prices)
     var95 = calculate_var_95(returns)
 
+    vol_score = min(volatility * 250, 100)
+    dd_score = min(abs(max_dd) * 200, 100)
+    var_score = min(abs(var95) * 2500, 100)
+    sharpe_score = max(0, min(100, 100 - (sharpe * 15)))
+    
     score = (
-        (volatility * 20) +
-        ((-max_dd) * 30) +
-        ((var95 * -1) * 25) +
-        ((1 / (sharpe + 1e-6)) * 25)
+        (vol_score * 0.35) +
+        (dd_score * 0.35) +
+        (var_score * 0.15) +
+        (sharpe_score * 0.15)
     )
 
     score = float(np.clip(score, 0, 100))
