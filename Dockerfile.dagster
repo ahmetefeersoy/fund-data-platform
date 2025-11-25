@@ -16,4 +16,4 @@ RUN echo "load_from:\n  - python_module: src.dagster.definitions" > /opt/dagster
 
 EXPOSE 3000
 
-CMD ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000"]
+CMD ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/dagster_home/workspace.yaml"]
